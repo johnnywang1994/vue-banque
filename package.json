@@ -4,6 +4,7 @@
   "author": "johnnywang",
   "main": "./dist/vue-banque.cjs.js",
   "module": "./dist/vue-banque.esm.js",
+  "types": "./types/index.d.ts",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development rollup -c rollup.config.js -w",
