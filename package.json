@@ -1,0 +1,46 @@
+{
+  "name": "vue-banque",
+  "version": "1.0.0",
+  "author": "johnnywang",
+  "main": "./dist/vue-banque.cjs.js",
+  "module": "./dist/vue-banque.esm.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development rollup -c rollup.config.js -w",
+    "build": "cross-env NODE_ENV=production rollup -c rollup.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnnywang1994/vue-banque.git"
+  },
+  "homepage": "https://github.com/johnnywang1994/vue-banque#readme",
+  "bugs": {
+    "url": "https://github.com/johnnywang1994/vue-banque/issues"
+  },
+  "dependencies": {
+    "@babel/runtime-corejs3": "^7.14.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@babel/plugin-transform-runtime": "^7.14.5",
+    "@babel/preset-env": "^7.14.7",
+    "@rollup/plugin-babel": "^5.2.2",
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-typescript": "^8.2.1",
+    "cross-env": "^7.0.3",
+    "rollup": "^2.53.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.3.0",
+    "typescript": "^4.3.5",
+    "vue": "^3.0.0"
+  },
+  "keywords": [
+    "npm",
+    "vue",
+    "vuex",
+    "hook",
+    "store",
+    "vue-banque"
+  ]
+}

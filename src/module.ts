@@ -1,0 +1,1 @@
+export { default as createBanque } from './core/create-banque';
