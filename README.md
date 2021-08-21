@@ -1,12 +1,12 @@
 # Vue Banque
 
-`Vue Banque` is a mini state storage system for vue-next(vue3) which only with 1KB tiny size.
+`Vue Banque` is a mini state storage system for vue-next(vue3) which only with 2KB tiny size.
 
 
 
 ## Features
 
-1. `1KB` tiny size.
+1. `2KB` tiny size.
 2. `Banque Module` is ES6 destructurable, auto implemented `toRef` when destructuring.
 3. `State Modify Protect` for states accessing from Banque Module.
 4. `Cross Module Access` for access states between modules.
