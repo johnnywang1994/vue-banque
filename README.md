@@ -7,10 +7,10 @@
 ## Features
 
 1. `2KB` tiny size.
-2. `Banque Module` is ES6 destructurable, auto implemented `toRef` when destructuring.
-3. `State Modify Protect` for states accessing from Banque Module.
+2. `Banque Module` is ES6 destructurable, default auto implemented `toRef` when destructuring.
+3. `State Modify Protect` for states accessing from Banque Module by default.
 4. `Cross Module Access` for access states between modules.
-
+5. `Functional Banque Module` can be reusable for creating multiple times of the same module.
 
 
 ## Install
@@ -49,6 +49,8 @@ import { createBanque } from 'vue-banque';
 import Game from './Game';
 
 const banque = createBanque({
+  strict: true,
+  autoToRef: true,
   modules: { Game },
 });
 
@@ -86,17 +88,19 @@ import { useBanque } from '@/store';
 
 const { Game } = useBanque();
 
-// destructured items will auto implemented with `toRef`
+// by default, destructured items will auto implemented with `toRef`
 const { count } = Game; // Ref
 console.log(count.value);
 </script>
 ```
 
+> this feature is opened by default, you can change settings in `options` by setting `autoToRef` with `boolean` type value.
+
 
 
 ### Access for states 
 
-each module accessed from rootState will be protected with `readonly`. All property will be wrapped with `toRef` output, only function in module will be wrapped without `toRef`.
+each module accessed from rootState will be protected with `readonly` by default. All property will be wrapped with `toRef` output, only function in module will be wrapped without `toRef`.
 
 ```js
 import { useBanque } from '@/store';
@@ -107,6 +111,8 @@ const { count } = Game;
 count.value += 1;
 // warn: Set operation on key "value" failed: target is readonly.
 ```
+
+> this feature is opened by default, you can change settings in `options` by setting `strict` with `boolean` type value.
 
 
 ### Define Action
@@ -210,9 +216,53 @@ const { count, add } = Game;
 
 
 
+## Reusable Module
+
+if we want to reuse a module, easily export a module factory function, then import the function to `options.modules`, function type module will be auto generate by `Vue Banque`.
+
+```js
+// store/Game.js
+import { ref } from 'vue';
+
+function GameModule() {
+  const count = ref(0);
+
+  function add(context, mystep = 1) {
+    count.value += mystep;
+  }
+
+  return {
+    count,
+  }
+}
+
+export default GameModule;
+```
+
+then we can reuse it for creating multiple modules. Each states of modules will be seperated.
+
+```js
+// store/index.js
+import { createBanque } from 'vue-banque';
+import Api from './Api';
+import Game from './Game';
+
+const banque = createBanque({
+  modules: {
+    Game1: Game,
+    Game2: Game,
+    Game3: Game,
+  },
+});
+
+// ...
+```
+
+
+
 ## Use with optional API
 
-the `$banque` stands for the global context.
+by default, the `$banque` key in `this` stands for the global context. we can change the globalName by setting `options.globalName` to whatever we like.
 
 ```js
 export default {
@@ -235,22 +285,27 @@ Since `Vue Banque` is writen by Typescript, so you can easily used with Typescri
 
 ### Create Banque
 
+import `BanqueContext` type from `vue-banque`, and create you banque root type by it, so that `vue-banque` can auto generate all your module types.
+
 ```ts
 // store/index.ts
-import { createBanque, BanqueModule } from 'vue-banque';
+import { createBanque, BanqueContext } from 'vue-banque';
 import Game from './Game';
 
-export type BanqueRoot = {
-  Game: BanqueModule<typeof Game>,
-}
+export type BanqueRoot = BanqueContext<{
+  Game: typeof Game,
+}>;
 
 const banque = createBanque<BanqueRoot>({
+  strict: true,
+  autoToRef: true,
+  globalName: '$banque',
   modules: { Game },
 });
 
 export default banque;
 
-export function useHookStore() {
+export function useBanque() {
   return banque.inject();
 }
 ```
@@ -266,6 +321,17 @@ import { BanqueRoot } from './index';
 const count = ref<number>(0);
 
 function add(context: BanqueRoot, mystep: number = 1): void {
+  const { Game } = context;
+  /* typeof Game
+    const Game: BanqueModule<{
+      count: Ref<number>;
+      add: (context: BanqueRoot, mystep?: number) => void;
+    }>
+  */
+  Game.add();
+  /* typeof add
+    (property) add: (mystep?: number | undefined) => void
+  */
   count.value += mystep;
 }
 

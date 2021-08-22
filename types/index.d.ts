@@ -1,5 +1,7 @@
 export type TypeFunction = (...any: any[]) => any;
 
+export type ParseModuleType<T> = T extends TypeFunction ? ReturnType<T> : T;
+
 export type DropFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never;
 
 export type DropFirstFunction<T> = {
@@ -17,16 +19,19 @@ export type BanqueModule<M> = {
 }
 
 export type BanqueContext<T> = {
-  [K in keyof T]: T[K];
+  [K in keyof T]: BanqueModule<ParseModuleType<T[K]>>;
 }
 
 export interface VueBanqueOptions {
-  modules: Record<string, object>;
+  modules: Record<string, object | TypeFunction>;
+  globalName?: string;
+  autoToRef?: boolean;
+  strict?: boolean;
 }
 
 export interface VueBanqueContructor<T> {
   options: VueBanqueOptions;
-  rootState: BanqueContext<T>;
+  rootState: T;
 
   initModules(): void;
   createModule<M>(rawModule: any): BanqueModule<M>;
@@ -34,7 +39,7 @@ export interface VueBanqueContructor<T> {
 
   // expose vue api
   install(app: App): void;
-  inject(): BanqueContext<T>;
+  inject(): T;
 }
 
 export function createBanque<T>(options: VueBanqueOptions): VueBanqueContructor<T>;

@@ -1,17 +1,21 @@
 import { readonly, inject, App } from 'vue';
-import { VueBanqueOptions, BanqueContext, BanqueModule, BanqueModuleType } from 'types';
-import { hookStoreKey, banqueModuleKey } from './symbol';
-import { wrapActionWithContext, proxyGetter } from './utils';
+import { VueBanqueOptions, BanqueModule, BanqueModuleType, TypeFunction } from 'types';
+import { noModuleErrorKey, banqueInjectKey } from './symbol';
+import { defaultOptions, definePropertyGetter, isObject, isFunction, proxyGetter, createHookModule, isHookModule } from './utils';
 
 class Banque<T> {
-  options: VueBanqueOptions;
-  rootState: BanqueContext<T>;
+  options: Required<VueBanqueOptions>;
+  rootState: T;
 
   constructor(options: VueBanqueOptions) {
-    this.options = options;
-    this.rootState = {} as BanqueContext<T>;
+    this.options = this.getOptions(options);
+    this.rootState = {} as T;
 
     this.initModules();
+  }
+
+  getOptions(options: VueBanqueOptions): Required<VueBanqueOptions> {
+    return Object.assign(defaultOptions, options);
   }
 
   initModules(): void {
@@ -19,40 +23,42 @@ class Banque<T> {
     if (modules) {
       Object.keys(modules).forEach((moduleName: string) => {
         const rawModule = modules[moduleName];
-        if (rawModule) {
-          const newModule = this.createModule(rawModule);
+        let newModule: BanqueModuleType | undefined;
+
+        // rawModule allow a factory function or raw object
+        if (isObject(rawModule)) {
+          newModule = this.createModule(rawModule);
+        } else if (isFunction(rawModule)) {
+          const rawModuleFn = rawModule as TypeFunction;
+          newModule = this.createModule(rawModuleFn());
+        }
+
+        if (newModule) {
           this.bindModule(moduleName, newModule);
         }
       });
+    } else {
+      console.warn(noModuleErrorKey.toString());
     }
   }
 
   createModule<M extends BanqueModuleType>(rawModule: M): BanqueModule<M> {
-    const { rootState } = this;
+    const { rootState, options } = this;
 
-    const hookModule: any = {};
+    const hookModule = createHookModule<T, M>(rawModule, rootState);
 
-    Object.defineProperty(hookModule, banqueModuleKey.toString(), {
-      get: () => true,
-    });
-
-    Object.keys(rawModule).forEach((key) => {
-      const resultVal = typeof rawModule[key] === 'function'
-        ? wrapActionWithContext<T>(rawModule[key], rootState)
-        : rawModule[key];
-      hookModule[key] = resultVal;
-    });
-
-    return proxyGetter(hookModule);
+    return proxyGetter(hookModule, options);
   }
 
   bindModule<M extends BanqueModuleType>(moduleName: string, newModule: M): M {
     const { rootState } = this;
 
-    if (newModule[banqueModuleKey.toString()]) {
-      Object.defineProperty(rootState, moduleName, {
-        get: () => readonly(newModule),
-      });
+    if (isHookModule(newModule)) {
+      definePropertyGetter(
+        rootState,
+        moduleName,
+        () => readonly(newModule), // protect module from being modified
+      )
       return (rootState as any)[moduleName] as M;
     }
 
@@ -60,14 +66,17 @@ class Banque<T> {
   }
 
   install(app: App): void {
-    Object.defineProperty(app.config.globalProperties, '$banque', {
-      get: () => this.rootState,
-    });
-    app.provide(hookStoreKey, this.rootState);
+    const { options } = this;
+    definePropertyGetter(
+      app.config.globalProperties,
+      options.globalName,
+      () => this.rootState,
+    );
+    app.provide(banqueInjectKey, this.rootState);
   }
 
-  inject(): BanqueContext<T> {
-    return inject(hookStoreKey) as BanqueContext<T>;
+  inject(): T {
+    return inject(banqueInjectKey) as T;
   }
 }
 

@@ -5,7 +5,11 @@ const PolySymbol = (name: string) =>
     ? Symbol( '[vue-banque]: ' + name )
     : ( '[vue-banque]: ' ) + name;
 
-export const hookStoreKey = PolySymbol('vue-banque');
+export const banqueInjectKey = PolySymbol('vue-banque');
+
+export const noModuleErrorKey = PolySymbol(
+  'No banque module was found, at least add one module in `modules` options'
+);
 
 export const setterErrorKey = PolySymbol(
   'Modifying property directly from Hook Store is not allowed',
