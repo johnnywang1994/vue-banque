@@ -4,7 +4,7 @@ export type ParseModuleType<T> = T extends TypeFunction ? ReturnType<T> : T;
 
 export type DropFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never;
 
-export type DropFirstFunction<T> = {
+export type DropFirstFunction<T extends TypeFunction> = {
   (...args: DropFirst<Parameters<T>>): ReturnType<T>;
 }
 
@@ -35,10 +35,10 @@ export interface VueBanqueContructor<T> {
 
   initModules(): void;
   createModule<M>(rawModule: any): BanqueModule<M>;
-  bindModule<K extends BanqueModule>(moduleName: string, newModule: K): K;
+  bindModule<K extends BanqueModuleType>(moduleName: string, newModule: K): K;
 
   // expose vue api
-  install(app: App): void;
+  install(app: any): void;
   inject(): T;
 }
 
