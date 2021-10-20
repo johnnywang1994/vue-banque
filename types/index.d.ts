@@ -1,3 +1,5 @@
+import { Ref } from 'vue';
+
 export type TypeFunction = (...any: any[]) => any;
 
 export type ParseModuleType<T> = T extends TypeFunction ? ReturnType<T> : T;
@@ -15,7 +17,7 @@ export type BanqueModuleType = {
 export type BanqueModule<M> = {
   [K in keyof M]: M[K] extends TypeFunction
     ? DropFirstFunction<M[K]>
-    : M[K];
+    : Ref<M[K]>;
 }
 
 export type BanqueContext<T> = {

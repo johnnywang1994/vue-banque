@@ -96,6 +96,7 @@ console.log(count.value);
 
 > this feature is opened by default, you can change settings in `options` by setting `autoToRef` with `boolean` type value.
 
+> be aware that if you turn the `autoToRef` with `false`, there might cause some typescript types warning on `Ref` type.
 
 
 ### Access for states 
