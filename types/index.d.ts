@@ -17,7 +17,7 @@ export type BanqueModuleType = {
 export type BanqueModule<M> = {
   [K in keyof M]: M[K] extends TypeFunction
     ? DropFirstFunction<M[K]>
-    : Ref<M[K]>;
+    : M[K] extends Ref ? M[K] : Ref<M[K]>;
 }
 
 export type BanqueContext<T> = {
